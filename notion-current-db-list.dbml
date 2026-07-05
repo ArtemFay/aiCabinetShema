@@ -25,7 +25,6 @@ Table "🎞️ ИСТОЧНИКИ" as notion_sources {
   "ЖАНР" text [note: "Notion type: multi_select"]
   "ИЗМЕНЕНО КЕМ" text [note: "Notion type: select"]
   "ЛЮДИ" text [note: "Notion type: relation -> collection://856124f9-f514-4f80-9602-6e4b3d4bedb6"]
-  "НАЗВАНИЕ" text [note: "Notion type: title"]
   "ОПИСАНИЕ" text [note: "Notion type: text"]
   "ОЦЕНКА" text [note: "Notion type: status"]
   "Оценка" numeric [note: "Notion type: number"]
@@ -154,6 +153,7 @@ Table "НЕДЕЛИ_DB" as notion_weeks { notion_id text [pk] }
 Table "Tasks" as notion_tasks { notion_id text [pk] }
 Table "Projects" as notion_projects { notion_id text [pk] }
 Table "СОБЫТИЯ" as notion_events { notion_id text [pk] }
+Table "НЕРАЗОБРАННЫЕ ССЫЛКИ" as notion_id_refs { notion_id text [pk] }
 
 // =========================
 // Связи, подтверждённые relation-полями
@@ -188,7 +188,3 @@ Ref: notion_organizations."ГРУППЫ" > notion_groups.notion_id
 Ref: notion_days."ГОДЫ_DB" > notion_years.notion_id
 Ref: notion_days."КВАРТАЛЫ_DB" > notion_quarters.notion_id
 Ref: notion_days."КОНТЕНТ" > notion_sources.notion_id
-
-Table "НЕРАЗОБРАННЫЕ ССЫЛКИ" as notion_id_refs {
-  notion_id text [pk]
-}
