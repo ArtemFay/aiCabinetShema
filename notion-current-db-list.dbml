@@ -1,0 +1,113 @@
+Project notion_current_as_is {
+  database_type: "PostgreSQL"
+  Note: "Черновой перенос текущей структуры Notion as-is. Названия баз взяты со страницы ВСЕ БД. Поля добавлены только там, где схема была доступна через Notion connector."
+}
+
+Table "🎞️ ИСТОЧНИКИ" as notion_sources {
+  notion_id text [pk]
+  "НАЗВАНИЕ" text [not null, note: "title"]
+  "Created" timestamp [note: "created_time"]
+  "Files & media" text [note: "file"]
+  "IMDB" numeric [note: "number"]
+  "SUMMARY" text [note: "text"]
+  "Seasons" numeric [note: "number"]
+  "Where" text [note: "multi_select"]
+  "ВЕС" numeric [note: "number"]
+  "ГОД ПРОИЗВОДСТВА" text [note: "text"]
+  "ГОРМОНЫ" text [note: "relation"]
+  "ДАТА ПРОВЕРКИ" date [note: "date"]
+  "ДЛИТЕЛЬНОСТЬ" text [note: "select"]
+  "ДНИ" text [note: "relation"]
+  "ЖАНР" text [note: "multi_select"]
+  "ИЗМЕНЕНО КЕМ" text [note: "select"]
+  "ЛЮДИ" text [note: "relation"]
+  "ОПИСАНИЕ" text [note: "text"]
+  "ОЦЕНКА" text
+  "ПЕРЕХОД" text [note: "formula"]
+  "ПОЛНОСТЬЮ ЗАВЕРШЕНО" boolean [note: "checkbox"]
+  "ССЫЛКА" text
+  "СТАТУС" text
+  "ТЕМЫ" text [note: "relation"]
+  "ТИП" text
+
+  Note: "Схема частичная: полный fetch был обрезан. Поля сохранены по доступному выводу."
+}
+
+Table "🏛️ ОРГАНИЗАЦИИ" as notion_organizations {
+  notion_id text [pk]
+  "ОРГАНИЗАЦИЯ" text [not null, note: "title"]
+  "Created" timestamp [note: "created_time"]
+  "Last edited" timestamp [note: "last_edited_time"]
+  "ВЕКТОР ДЕЯТЕЛЬНОСТИ" text [note: "text"]
+  "ВЕС ДОВЕРИЯ" numeric [note: "number"]
+  "ГРУППЫ" text [note: "relation"]
+  "ДАТА ПРОВЕРКИ" date [note: "date"]
+  "ИЗМЕНЕНО КЕМ" text [note: "select"]
+  "ИСТОЧНИКИ" text [note: "relation"]
+  "ЛЮДИ" text [note: "relation"]
+  "ОПИСАНИЕ" text [note: "text"]
+  "ПРИЧИНА ИЗМЕНЕНИЯ AI" text [note: "text"]
+  "ПРОВЕРЕНО КЕМ" text [note: "person"]
+  "ПРОЕКТЫ" text [note: "relation"]
+  "СОБЫТИЯ" text [note: "relation"]
+  "СОЗДАНО КЕМ" text [note: "select"]
+  "СТАТУС" text [note: "status"]
+  "СТАТУС ВАЛИДАЦИИ" text [note: "select"]
+  "ТЕМЫ" text [note: "relation"]
+  "ТИП ОРГАНИЗАЦИИ" text [note: "select"]
+}
+
+Table "🍥 ДНИ_DB" as notion_days {
+  notion_id text [pk]
+  "ДНИ" text [not null, note: "title"]
+  "3 дня" text [note: "formula"]
+  "3 цели дня" text [note: "text"]
+  "Related to СОБЫТИЯ/ПРОЕКТЫ (1) (🍥 ДНИ_DB)" text [note: "relation"]
+  "Rollup" text [note: "rollup"]
+  "Week" text [note: "formula"]
+  "ID" int [note: "auto_increment_id"]
+  "ВЕС ДОВЕРИЯ" numeric [note: "number"]
+  "Вес" numeric [note: "number"]
+  "ГОДЫ_DB" text [note: "relation"]
+  "Год" text [note: "formula"]
+  "Город" text [note: "multi_select"]
+  "ДАТА ПРОВЕРКИ" date [note: "date"]
+  "ДОСТИЖЕНИЯ" text [note: "relation"]
+  "Дата ДЕНЬ БД" date [note: "date"]
+  "Заголовок ДЕНЬ" text [note: "text"]
+  "Заголовок УТРО" text [note: "text"]
+  "ИЗМЕНЕНО КЕМ" text [note: "select"]
+  "КВАРТАЛЫ_DB" text [note: "relation"]
+  "КОНТЕНТ" text [note: "relation"]
+  "Календарь" text [note: "formula"]
+  "Коммент по контенту" text [note: "rollup"]
+  "Лайфстайл" text [note: "multi_select"]
+
+  Note: "Схема частичная: полный fetch был обрезан."
+}
+
+Table "ЛЮДИ" as notion_people { notion_id text [pk] }
+Table "ГРУППЫ" as notion_groups { notion_id text [pk] }
+Table "РОЛИ В ОРГАНИЗАЦИЯХ" as notion_org_roles { notion_id text [pk] }
+Table "ГОДЫ_DB" as notion_years { notion_id text [pk] }
+Table "КВАРТАЛЫ_DB" as notion_quarters { notion_id text [pk] }
+Table "МЕСЯЦЫ_DB" as notion_months { notion_id text [pk] }
+Table "НЕДЕЛИ_DB" as notion_weeks { notion_id text [pk] }
+Table "Tasks" as notion_tasks { notion_id text [pk] }
+Table "Projects" as notion_projects { notion_id text [pk] }
+Table "СОБЫТИЯ" as notion_events { notion_id text [pk] }
+Table "💠 ТЕЗИСЫ" as notion_claims { notion_id text [pk] }
+Table "ТЕМЫ" as notion_topics { notion_id text [pk] }
+
+Ref: notion_organizations."ИСТОЧНИКИ" > notion_sources.notion_id
+Ref: notion_organizations."СОБЫТИЯ" > notion_events.notion_id
+Ref: notion_organizations."ПРОЕКТЫ" > notion_projects.notion_id
+Ref: notion_organizations."ТЕМЫ" > notion_topics.notion_id
+Ref: notion_organizations."ЛЮДИ" > notion_people.notion_id
+Ref: notion_organizations."ГРУППЫ" > notion_groups.notion_id
+Ref: notion_sources."ДНИ" > notion_days.notion_id
+Ref: notion_sources."ТЕМЫ" > notion_topics.notion_id
+Ref: notion_sources."ЛЮДИ" > notion_people.notion_id
+Ref: notion_days."ГОДЫ_DB" > notion_years.notion_id
+Ref: notion_days."КВАРТАЛЫ_DB" > notion_quarters.notion_id
+Ref: notion_days."КОНТЕНТ" > notion_sources.notion_id
