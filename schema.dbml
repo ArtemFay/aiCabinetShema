@@ -1,0 +1,312 @@
+Project ai_cabinet {
+  database_type: "PostgreSQL"
+  Note: "Рабочая схема данных AI-кабинета. Прототип переносится из Notion в будущую PostgreSQL-структуру. DBML используется как человекочитаемый источник истины для проектирования ER-диаграммы."
+}
+
+// =========================
+// 1. Проекты и рабочие зоны
+// =========================
+
+Table projects {
+  id uuid [pk]
+  title text [not null]
+  description text
+  status text [not null, note: "draft | active | paused | archived"]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+
+  Note: "Проект или направление работы: AI-кабинет, база знаний, обучение, клиентская работа, исследование и т.д."
+}
+
+Table workspaces {
+  id uuid [pk]
+  title text [not null]
+  description text
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+
+  Note: "Рабочее пространство пользователя или команды. На первом этапе может быть одно личное пространство."
+}
+
+Table project_workspaces {
+  project_id uuid [not null, ref: > projects.id]
+  workspace_id uuid [not null, ref: > workspaces.id]
+
+  indexes {
+    (project_id, workspace_id) [pk]
+  }
+
+  Note: "Связь проектов с рабочими пространствами."
+}
+
+// =========================
+// 2. Источники и входящие материалы
+// =========================
+
+Table sources {
+  id uuid [pk]
+  title text [not null]
+  source_type text [not null, note: "book | article | transcript | chat | note | video | audio | document | web_page | other"]
+  status text [not null, note: "new | registered | processing | processed | archived"]
+  original_url text
+  external_id text
+  author text
+  source_date date
+  description text
+  raw_text text
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+
+  Note: "Источник: книга, статья, транскрипт, переписка, заметка, видео, аудио или другой входной материал."
+}
+
+Table source_projects {
+  source_id uuid [not null, ref: > sources.id]
+  project_id uuid [not null, ref: > projects.id]
+
+  indexes {
+    (source_id, project_id) [pk]
+  }
+
+  Note: "Один источник может относиться к нескольким проектам."
+}
+
+Table source_files {
+  id uuid [pk]
+  source_id uuid [not null, ref: > sources.id]
+  file_name text [not null]
+  file_type text
+  storage_url text
+  checksum text
+  created_at timestamp [not null]
+
+  Note: "Файлы, привязанные к источнику: PDF, DOCX, аудио, видео, экспорт чата и т.д."
+}
+
+// =========================
+// 3. Фрагменты и санитарная обработка
+// =========================
+
+Table fragments {
+  id uuid [pk]
+  source_id uuid [not null, ref: > sources.id]
+  fragment_number int [not null, note: "Порядковый номер внутри источника, например 0001-9999"]
+  raw_text text [not null]
+  clean_text text
+  status text [not null, note: "raw | cleaned | reviewed | rejected"]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+
+  indexes {
+    (source_id, fragment_number) [unique]
+  }
+
+  Note: "Фрагмент исходного материала после первичной сегментации и санитарной очистки."
+}
+
+Table fragment_links {
+  id uuid [pk]
+  from_fragment_id uuid [not null, ref: > fragments.id]
+  to_fragment_id uuid [not null, ref: > fragments.id]
+  link_type text [not null, note: "continues | clarifies | contradicts | duplicates | related"]
+  comment text
+  created_at timestamp [not null]
+
+  Note: "Смысловые связи между фрагментами одного или разных источников."
+}
+
+// =========================
+// 4. Атомарные тезисы и смыслы
+// =========================
+
+Table atomic_claims {
+  id uuid [pk]
+  fragment_id uuid [not null, ref: > fragments.id]
+  claim_text text [not null]
+  claim_type text [note: "fact | interpretation | hypothesis | question | instruction | decision | insight"]
+  confidence numeric
+  status text [not null, note: "draft | reviewed | accepted | rejected"]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+
+  Note: "Атомарный смысловой тезис, извлечённый из фрагмента. Один тезис = один субъект + одно действие/свойство."
+}
+
+Table claim_links {
+  id uuid [pk]
+  from_claim_id uuid [not null, ref: > atomic_claims.id]
+  to_claim_id uuid [not null, ref: > atomic_claims.id]
+  link_type text [not null, note: "supports | contradicts | explains | causes | depends_on | duplicates | relates_to"]
+  comment text
+  created_at timestamp [not null]
+
+  Note: "Связи между атомарными тезисами."
+}
+
+// =========================
+// 5. Теги, категории и словари
+// =========================
+
+Table tags {
+  id uuid [pk]
+  name text [not null]
+  tag_type text [note: "topic | person | method | status | domain | custom"]
+  description text
+  created_at timestamp [not null]
+
+  indexes {
+    name [unique]
+  }
+
+  Note: "Теги и категории для разметки источников, фрагментов, тезисов, задач и инсайтов."
+}
+
+Table source_tags {
+  source_id uuid [not null, ref: > sources.id]
+  tag_id uuid [not null, ref: > tags.id]
+
+  indexes {
+    (source_id, tag_id) [pk]
+  }
+}
+
+Table fragment_tags {
+  fragment_id uuid [not null, ref: > fragments.id]
+  tag_id uuid [not null, ref: > tags.id]
+
+  indexes {
+    (fragment_id, tag_id) [pk]
+  }
+}
+
+Table claim_tags {
+  claim_id uuid [not null, ref: > atomic_claims.id]
+  tag_id uuid [not null, ref: > tags.id]
+
+  indexes {
+    (claim_id, tag_id) [pk]
+  }
+}
+
+// =========================
+// 6. Диалоги, сессии и сообщения
+// =========================
+
+Table sessions {
+  id uuid [pk]
+  project_id uuid [ref: > projects.id]
+  title text [not null]
+  session_type text [not null, note: "chat | consultation | research | planning | coding | voice_call"]
+  status text [not null, note: "draft | active | completed | archived"]
+  started_at timestamp
+  ended_at timestamp
+  created_at timestamp [not null]
+
+  Note: "Рабочая сессия: диалог с ИИ, консультация, созвон, исследование, планирование или кодинг."
+}
+
+Table messages {
+  id uuid [pk]
+  session_id uuid [not null, ref: > sessions.id]
+  role text [not null, note: "user | assistant | system | participant | tool"]
+  author_name text
+  content text [not null]
+  message_order int [not null]
+  created_at timestamp [not null]
+
+  indexes {
+    (session_id, message_order) [unique]
+  }
+
+  Note: "Сообщения внутри сессии или диалога."
+}
+
+Table message_claims {
+  message_id uuid [not null, ref: > messages.id]
+  claim_id uuid [not null, ref: > atomic_claims.id]
+
+  indexes {
+    (message_id, claim_id) [pk]
+  }
+
+  Note: "Связь сообщений с извлечёнными атомарными тезисами."
+}
+
+// =========================
+// 7. Инсайты, решения и задачи
+// =========================
+
+Table insights {
+  id uuid [pk]
+  project_id uuid [ref: > projects.id]
+  source_claim_id uuid [ref: > atomic_claims.id]
+  title text [not null]
+  text text [not null]
+  status text [not null, note: "new | reviewed | accepted | archived"]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+
+  Note: "Вывод, наблюдение или осмысленная находка, полученная из источников, диалогов или анализа."
+}
+
+Table decisions {
+  id uuid [pk]
+  project_id uuid [ref: > projects.id]
+  title text [not null]
+  decision_text text [not null]
+  rationale text
+  status text [not null, note: "proposed | accepted | rejected | superseded"]
+  decided_at timestamp
+  created_at timestamp [not null]
+
+  Note: "Принятые или обсуждаемые решения по проекту."
+}
+
+Table tasks {
+  id uuid [pk]
+  project_id uuid [ref: > projects.id]
+  decision_id uuid [ref: > decisions.id]
+  title text [not null]
+  description text
+  status text [not null, note: "todo | in_progress | blocked | done | cancelled"]
+  priority text [note: "low | medium | high | critical"]
+  due_date date
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+
+  Note: "Задачи, возникающие из решений, инсайтов, источников или рабочих сессий."
+}
+
+Table insight_tags {
+  insight_id uuid [not null, ref: > insights.id]
+  tag_id uuid [not null, ref: > tags.id]
+
+  indexes {
+    (insight_id, tag_id) [pk]
+  }
+}
+
+Table task_tags {
+  task_id uuid [not null, ref: > tasks.id]
+  tag_id uuid [not null, ref: > tags.id]
+
+  indexes {
+    (task_id, tag_id) [pk]
+  }
+}
+
+// =========================
+// 8. Служебные заметки по проектированию
+// =========================
+
+Table design_notes {
+  id uuid [pk]
+  project_id uuid [ref: > projects.id]
+  title text [not null]
+  note_text text [not null]
+  status text [not null, note: "open | resolved | archived"]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+
+  Note: "Служебные заметки о проектировании структуры данных и спорных архитектурных решениях."
+}
