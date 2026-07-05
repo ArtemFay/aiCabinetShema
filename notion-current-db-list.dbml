@@ -1,87 +1,145 @@
 Project notion_current_as_is {
   database_type: "PostgreSQL"
-  Note: "Черновой перенос текущей структуры Notion as-is. Названия баз взяты со страницы ВСЕ БД. Поля добавлены только там, где схема была доступна через Notion connector."
+  Note: "Текущий снимок структуры Notion as-is. Названия баз и полей сохранены как в оригинале. Типы указаны по схеме Notion."
 }
+
+// =========================
+// СМЫСЛЫ — полностью проработано
+// =========================
 
 Table "🎞️ ИСТОЧНИКИ" as notion_sources {
-  notion_id text [pk]
-  "НАЗВАНИЕ" text [not null, note: "title"]
-  "Created" timestamp [note: "created_time"]
-  "Files & media" text [note: "file"]
-  "IMDB" numeric [note: "number"]
-  "SUMMARY" text [note: "text"]
-  "Seasons" numeric [note: "number"]
-  "Where" text [note: "multi_select"]
-  "ВЕС" numeric [note: "number"]
-  "ГОД ПРОИЗВОДСТВА" text [note: "text"]
-  "ГОРМОНЫ" text [note: "relation"]
-  "ДАТА ПРОВЕРКИ" date [note: "date"]
-  "ДЛИТЕЛЬНОСТЬ" text [note: "select"]
-  "ДНИ" text [note: "relation"]
-  "ЖАНР" text [note: "multi_select"]
-  "ИЗМЕНЕНО КЕМ" text [note: "select"]
-  "ЛЮДИ" text [note: "relation"]
-  "ОПИСАНИЕ" text [note: "text"]
-  "ОЦЕНКА" text
-  "ПЕРЕХОД" text [note: "formula"]
-  "ПОЛНОСТЬЮ ЗАВЕРШЕНО" boolean [note: "checkbox"]
-  "ССЫЛКА" text
-  "СТАТУС" text
-  "ТЕМЫ" text [note: "relation"]
-  "ТИП" text
+  notion_id text [pk, note: "collection://2fbbd3ce-ad74-483b-9022-c867ec04d388"]
+  "НАЗВАНИЕ" text [not null, note: "Notion type: title"]
+  "Created" timestamp [note: "Notion type: created_time"]
+  "Files & media" text [note: "Notion type: file"]
+  "IMDB" numeric [note: "Notion type: number"]
+  "SUMMARY" text [note: "Notion type: text"]
+  "Seasons" numeric [note: "Notion type: number"]
+  "Where" text [note: "Notion type: multi_select"]
+  "ВЕС" numeric [note: "Notion type: number"]
+  "ГОД ПРОИЗВОДСТВА" text [note: "Notion type: text"]
+  "ГОРМОНЫ" text [note: "Notion type: relation -> collection://45cd055f-a989-435c-8ce8-9a7478e282bb"]
+  "ДАТА ПРОВЕРКИ" date [note: "Notion type: date"]
+  "ДЛИТЕЛЬНОСТЬ" text [note: "Notion type: select"]
+  "ДНИ" text [note: "Notion type: relation -> collection://f03f9c19-12fb-461a-8efc-82085e0ed26d"]
+  "ЖАНР" text [note: "Notion type: multi_select"]
+  "ИЗМЕНЕНО КЕМ" text [note: "Notion type: select"]
+  "ЛЮДИ" text [note: "Notion type: relation -> collection://856124f9-f514-4f80-9602-6e4b3d4bedb6"]
+  "НАЗВАНИЕ" text [note: "Notion type: title"]
+  "ОПИСАНИЕ" text [note: "Notion type: text"]
+  "ОЦЕНКА" text [note: "Notion type: status"]
+  "Оценка" numeric [note: "Notion type: number"]
+  "ПЕРЕХОД" text [note: "Notion type: formula; notAvailableInQuerySql"]
+  "ПОЛНОСТЬЮ ЗАВЕРШЕНО" boolean [note: "Notion type: checkbox"]
+  "ПРОВЕРЕНО КЕМ" text [note: "Notion type: person"]
+  "СОЗДАНО КЕМ" text [note: "Notion type: select"]
+  "ССЫЛКА" text [note: "Notion type: url"]
+  "СТАТУС" text [note: "Notion type: select"]
+  "ТЕМЫ" text [note: "Notion type: relation -> collection://92ec1584-b174-4ebf-baf4-c54a5656ef84"]
+  "ТИП" text [note: "Notion type: select"]
+  "ЦИТАТЫ" text [note: "Notion type: relation -> collection://d1b96271-666d-4f16-b323-62b6fa6e2160"]
 
-  Note: "Схема частичная: полный fetch был обрезан. Поля сохранены по доступному выводу."
+  Note: "Полный список полей выгружен из Notion schema и SQLite table definition."
 }
+
+Table "📌 ТЕЗИСЫ" as notion_claims {
+  notion_id text [pk, note: "collection://cf0cbe64-d59b-439a-877d-9ca6e0c7eba5"]
+  "ТЕЗИС" text [not null, note: "Notion type: title"]
+  "Created" timestamp [note: "Notion type: created_time"]
+  "Last edited" timestamp [note: "Notion type: last_edited_time"]
+  "АКТУАЛЬНОСТЬ" text [note: "Notion type: select"]
+  "ВЕС" numeric [note: "Notion type: number"]
+  "ВОПРОСЫ ДЛЯ ПРОВЕРКИ" text [note: "Notion type: text"]
+  "ГРУППЫ" text [note: "Notion type: relation -> collection://35c4a32e-95c5-419c-8131-857e8aa1f2ae"]
+  "ДАТА ПРОВЕРКИ" date [note: "Notion type: date"]
+  "ДНИ" text [note: "Notion type: relation -> collection://f03f9c19-12fb-461a-8efc-82085e0ed26d"]
+  "ИЗМЕНЕНО КЕМ" text [note: "Notion type: select"]
+  "ИСТОЧНИКИ" text [note: "Notion type: relation -> collection://2fbbd3ce-ad74-483b-9022-c867ec04d388"]
+  "ЛЮДИ" text [note: "Notion type: relation -> collection://856124f9-f514-4f80-9602-6e4b3d4bedb6"]
+  "ОБЛАСТЬ ПРИМЕНЕНИЯ" text [note: "Notion type: multi_select"]
+  "ОБОСНОВЫВАЕТ" text [note: "Notion type: relation -> collection://cf0cbe64-d59b-439a-877d-9ca6e0c7eba5"]
+  "ОРГАНИЗАЦИИ" text [note: "Notion type: relation -> collection://3aceb0b0-8e87-4922-a1fb-a7e00bde9c51"]
+  "ОСНОВАНИЯ" text [note: "Notion type: relation -> collection://cf0cbe64-d59b-439a-877d-9ca6e0c7eba5"]
+  "ПРИЧИНА ИЗМЕНЕНИЯ AI" text [note: "Notion type: text"]
+  "ПРОВЕРЕНО КЕМ" text [note: "Notion type: person"]
+  "ПРОЕКТЫ" text [note: "Notion type: relation -> collection://662e6140-2e55-40b4-8a67-e5d7aabe67bf"]
+  "РИСК ОШИБОЧНОЙ ГИПОТЕЗЫ" text [note: "Notion type: text"]
+  "СОБЫТИЯ" text [note: "Notion type: relation -> collection://57019b2b-a79d-4fcf-b9c2-1f0573ae0d4d"]
+  "СОЗДАНО КЕМ" text [note: "Notion type: select"]
+  "СТАТУС" text [note: "Notion type: select"]
+  "СТАТУС ГИПОТЕЗЫ" text [note: "Notion type: select"]
+  "ТЕМЫ" text [note: "Notion type: relation -> collection://92ec1584-b174-4ebf-baf4-c54a5656ef84"]
+  "ТИП ТЕЗИСА" text [note: "Notion type: select"]
+  "УРОВЕНЬ УВЕРЕННОСТИ" text [note: "Notion type: select"]
+  "УРОВЕНЬ УТВЕРЖДЕНИЯ" text [note: "Notion type: select"]
+  "ФОРМУЛИРОВКА" text [note: "Notion type: text"]
+
+  Note: "Полный список полей выгружен из Notion schema и SQLite table definition."
+}
+
+Table "🧠 ТЕМЫ" as notion_topics {
+  notion_id text [pk, note: "collection://92ec1584-b174-4ebf-baf4-c54a5656ef84"]
+  "Тема" text [not null, note: "Notion type: title"]
+  "Parent item" text [note: "Notion type: relation -> collection://92ec1584-b174-4ebf-baf4-c54a5656ef84; limit: 1"]
+  "Sub-item" text [note: "Notion type: relation -> collection://92ec1584-b174-4ebf-baf4-c54a5656ef84"]
+  "Описание" text [note: "Notion type: text"]
+
+  Note: "Полный список полей выгружен из Notion schema и SQLite table definition."
+}
+
+// =========================
+// СУБЪЕКТЫ / ВРЕМЯ / ДЕЯТЕЛЬНОСТЬ — ещё не полностью проработано
+// =========================
 
 Table "🏛️ ОРГАНИЗАЦИИ" as notion_organizations {
   notion_id text [pk]
-  "ОРГАНИЗАЦИЯ" text [not null, note: "title"]
-  "Created" timestamp [note: "created_time"]
-  "Last edited" timestamp [note: "last_edited_time"]
-  "ВЕКТОР ДЕЯТЕЛЬНОСТИ" text [note: "text"]
-  "ВЕС ДОВЕРИЯ" numeric [note: "number"]
-  "ГРУППЫ" text [note: "relation"]
-  "ДАТА ПРОВЕРКИ" date [note: "date"]
-  "ИЗМЕНЕНО КЕМ" text [note: "select"]
-  "ИСТОЧНИКИ" text [note: "relation"]
-  "ЛЮДИ" text [note: "relation"]
-  "ОПИСАНИЕ" text [note: "text"]
-  "ПРИЧИНА ИЗМЕНЕНИЯ AI" text [note: "text"]
-  "ПРОВЕРЕНО КЕМ" text [note: "person"]
-  "ПРОЕКТЫ" text [note: "relation"]
-  "СОБЫТИЯ" text [note: "relation"]
-  "СОЗДАНО КЕМ" text [note: "select"]
-  "СТАТУС" text [note: "status"]
-  "СТАТУС ВАЛИДАЦИИ" text [note: "select"]
-  "ТЕМЫ" text [note: "relation"]
-  "ТИП ОРГАНИЗАЦИИ" text [note: "select"]
+  "ОРГАНИЗАЦИЯ" text [not null, note: "Notion type: title"]
+  "Created" timestamp [note: "Notion type: created_time"]
+  "Last edited" timestamp [note: "Notion type: last_edited_time"]
+  "ВЕКТОР ДЕЯТЕЛЬНОСТИ" text [note: "Notion type: text"]
+  "ВЕС ДОВЕРИЯ" numeric [note: "Notion type: number"]
+  "ГРУППЫ" text [note: "Notion type: relation"]
+  "ДАТА ПРОВЕРКИ" date [note: "Notion type: date"]
+  "ИЗМЕНЕНО КЕМ" text [note: "Notion type: select"]
+  "ИСТОЧНИКИ" text [note: "Notion type: relation"]
+  "ЛЮДИ" text [note: "Notion type: relation"]
+  "ОПИСАНИЕ" text [note: "Notion type: text"]
+  "ПРИЧИНА ИЗМЕНЕНИЯ AI" text [note: "Notion type: text"]
+  "ПРОВЕРЕНО КЕМ" text [note: "Notion type: person"]
+  "ПРОЕКТЫ" text [note: "Notion type: relation"]
+  "СОБЫТИЯ" text [note: "Notion type: relation"]
+  "СОЗДАНО КЕМ" text [note: "Notion type: select"]
+  "СТАТУС" text [note: "Notion type: status"]
+  "СТАТУС ВАЛИДАЦИИ" text [note: "Notion type: select"]
+  "ТЕМЫ" text [note: "Notion type: relation"]
+  "ТИП ОРГАНИЗАЦИИ" text [note: "Notion type: select"]
 }
 
 Table "🍥 ДНИ_DB" as notion_days {
   notion_id text [pk]
-  "ДНИ" text [not null, note: "title"]
-  "3 дня" text [note: "formula"]
-  "3 цели дня" text [note: "text"]
-  "Related to СОБЫТИЯ/ПРОЕКТЫ (1) (🍥 ДНИ_DB)" text [note: "relation"]
-  "Rollup" text [note: "rollup"]
-  "Week" text [note: "formula"]
-  "ID" int [note: "auto_increment_id"]
-  "ВЕС ДОВЕРИЯ" numeric [note: "number"]
-  "Вес" numeric [note: "number"]
-  "ГОДЫ_DB" text [note: "relation"]
-  "Год" text [note: "formula"]
-  "Город" text [note: "multi_select"]
-  "ДАТА ПРОВЕРКИ" date [note: "date"]
-  "ДОСТИЖЕНИЯ" text [note: "relation"]
-  "Дата ДЕНЬ БД" date [note: "date"]
-  "Заголовок ДЕНЬ" text [note: "text"]
-  "Заголовок УТРО" text [note: "text"]
-  "ИЗМЕНЕНО КЕМ" text [note: "select"]
-  "КВАРТАЛЫ_DB" text [note: "relation"]
-  "КОНТЕНТ" text [note: "relation"]
-  "Календарь" text [note: "formula"]
-  "Коммент по контенту" text [note: "rollup"]
-  "Лайфстайл" text [note: "multi_select"]
+  "ДНИ" text [not null, note: "Notion type: title"]
+  "3 дня" text [note: "Notion type: formula"]
+  "3 цели дня" text [note: "Notion type: text"]
+  "Related to СОБЫТИЯ/ПРОЕКТЫ (1) (🍥 ДНИ_DB)" text [note: "Notion type: relation"]
+  "Rollup" text [note: "Notion type: rollup"]
+  "Week" text [note: "Notion type: formula"]
+  "ID" int [note: "Notion type: auto_increment_id"]
+  "ВЕС ДОВЕРИЯ" numeric [note: "Notion type: number"]
+  "Вес" numeric [note: "Notion type: number"]
+  "ГОДЫ_DB" text [note: "Notion type: relation"]
+  "Год" text [note: "Notion type: formula"]
+  "Город" text [note: "Notion type: multi_select"]
+  "ДАТА ПРОВЕРКИ" date [note: "Notion type: date"]
+  "ДОСТИЖЕНИЯ" text [note: "Notion type: relation"]
+  "Дата ДЕНЬ БД" date [note: "Notion type: date"]
+  "Заголовок ДЕНЬ" text [note: "Notion type: text"]
+  "Заголовок УТРО" text [note: "Notion type: text"]
+  "ИЗМЕНЕНО КЕМ" text [note: "Notion type: select"]
+  "КВАРТАЛЫ_DB" text [note: "Notion type: relation"]
+  "КОНТЕНТ" text [note: "Notion type: relation"]
+  "Календарь" text [note: "Notion type: formula"]
+  "Коммент по контенту" text [note: "Notion type: rollup"]
+  "Лайфстайл" text [note: "Notion type: multi_select"]
 
   Note: "Схема частичная: полный fetch был обрезан."
 }
@@ -96,8 +154,29 @@ Table "НЕДЕЛИ_DB" as notion_weeks { notion_id text [pk] }
 Table "Tasks" as notion_tasks { notion_id text [pk] }
 Table "Projects" as notion_projects { notion_id text [pk] }
 Table "СОБЫТИЯ" as notion_events { notion_id text [pk] }
-Table "💠 ТЕЗИСЫ" as notion_claims { notion_id text [pk] }
-Table "ТЕМЫ" as notion_topics { notion_id text [pk] }
+
+// =========================
+// Связи, подтверждённые relation-полями
+// =========================
+
+Ref: notion_sources."ТЕМЫ" > notion_topics.notion_id
+Ref: notion_sources."ЛЮДИ" > notion_people.notion_id
+Ref: notion_sources."ДНИ" > notion_days.notion_id
+Ref: notion_sources."ЦИТАТЫ" > notion_id_refs.notion_id
+
+Ref: notion_claims."ИСТОЧНИКИ" > notion_sources.notion_id
+Ref: notion_claims."ТЕМЫ" > notion_topics.notion_id
+Ref: notion_claims."ЛЮДИ" > notion_people.notion_id
+Ref: notion_claims."ДНИ" > notion_days.notion_id
+Ref: notion_claims."ГРУППЫ" > notion_groups.notion_id
+Ref: notion_claims."ОРГАНИЗАЦИИ" > notion_organizations.notion_id
+Ref: notion_claims."ПРОЕКТЫ" > notion_projects.notion_id
+Ref: notion_claims."СОБЫТИЯ" > notion_events.notion_id
+Ref: notion_claims."ОСНОВАНИЯ" > notion_claims.notion_id
+Ref: notion_claims."ОБОСНОВЫВАЕТ" > notion_claims.notion_id
+
+Ref: notion_topics."Parent item" > notion_topics.notion_id
+Ref: notion_topics."Sub-item" > notion_topics.notion_id
 
 Ref: notion_organizations."ИСТОЧНИКИ" > notion_sources.notion_id
 Ref: notion_organizations."СОБЫТИЯ" > notion_events.notion_id
@@ -105,9 +184,11 @@ Ref: notion_organizations."ПРОЕКТЫ" > notion_projects.notion_id
 Ref: notion_organizations."ТЕМЫ" > notion_topics.notion_id
 Ref: notion_organizations."ЛЮДИ" > notion_people.notion_id
 Ref: notion_organizations."ГРУППЫ" > notion_groups.notion_id
-Ref: notion_sources."ДНИ" > notion_days.notion_id
-Ref: notion_sources."ТЕМЫ" > notion_topics.notion_id
-Ref: notion_sources."ЛЮДИ" > notion_people.notion_id
+
 Ref: notion_days."ГОДЫ_DB" > notion_years.notion_id
 Ref: notion_days."КВАРТАЛЫ_DB" > notion_quarters.notion_id
 Ref: notion_days."КОНТЕНТ" > notion_sources.notion_id
+
+Table "НЕРАЗОБРАННЫЕ ССЫЛКИ" as notion_id_refs {
+  notion_id text [pk]
+}
