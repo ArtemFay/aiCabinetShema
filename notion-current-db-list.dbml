@@ -1,6 +1,6 @@
 Project notion_current_as_is {
   database_type: "PostgreSQL"
-  Note: "Текущий снимок структуры Notion as-is. Названия баз и полей сохранены как в оригинале. Типы указаны по схеме Notion."
+  Note: "Текущий снимок структуры Notion as-is. Названия баз и полей сохранены как в оригинале. Типы указаны по схеме Notion. Relation-поля дополнительно разложены в bridge-таблицы для корректной ERD-визуализации many-to-many."
 }
 
 // =========================
@@ -34,7 +34,7 @@ Table "🎞️ ИСТОЧНИКИ" as notion_sources {
   "СОЗДАНО КЕМ" text [note: "Notion type: select"]
   "ССЫЛКА" text [note: "Notion type: url"]
   "СТАТУС" text [note: "Notion type: select"]
-  "ТЕМЫ" text [note: "Notion type: relation -> collection://92ec1584-b174-4ebf-baf4-c54a5656ef84"]
+  "ТЕМЫ" text [note: "Notion type: relation -> collection://92ec1584-b174-4ebf-baf4-c54a5656ef84; JSON array в Notion"]
   "ТИП" text [note: "Notion type: select"]
   "ЦИТАТЫ" text [note: "Notion type: relation -> collection://d1b96271-666d-4f16-b323-62b6fa6e2160"]
 
@@ -53,12 +53,12 @@ Table "📌 ТЕЗИСЫ" as notion_claims {
   "ДАТА ПРОВЕРКИ" date [note: "Notion type: date"]
   "ДНИ" text [note: "Notion type: relation -> collection://f03f9c19-12fb-461a-8efc-82085e0ed26d"]
   "ИЗМЕНЕНО КЕМ" text [note: "Notion type: select"]
-  "ИСТОЧНИКИ" text [note: "Notion type: relation -> collection://2fbbd3ce-ad74-483b-9022-c867ec04d388"]
+  "ИСТОЧНИКИ" text [note: "Notion type: relation -> collection://2fbbd3ce-ad74-483b-9022-c867ec04d388; JSON array в Notion"]
   "ЛЮДИ" text [note: "Notion type: relation -> collection://856124f9-f514-4f80-9602-6e4b3d4bedb6"]
   "ОБЛАСТЬ ПРИМЕНЕНИЯ" text [note: "Notion type: multi_select"]
-  "ОБОСНОВЫВАЕТ" text [note: "Notion type: relation -> collection://cf0cbe64-d59b-439a-877d-9ca6e0c7eba5"]
+  "ОБОСНОВЫВАЕТ" text [note: "Notion type: relation -> collection://cf0cbe64-d59b-439a-877d-9ca6e0c7eba5; JSON array в Notion"]
   "ОРГАНИЗАЦИИ" text [note: "Notion type: relation -> collection://3aceb0b0-8e87-4922-a1fb-a7e00bde9c51"]
-  "ОСНОВАНИЯ" text [note: "Notion type: relation -> collection://cf0cbe64-d59b-439a-877d-9ca6e0c7eba5"]
+  "ОСНОВАНИЯ" text [note: "Notion type: relation -> collection://cf0cbe64-d59b-439a-877d-9ca6e0c7eba5; JSON array в Notion"]
   "ПРИЧИНА ИЗМЕНЕНИЯ AI" text [note: "Notion type: text"]
   "ПРОВЕРЕНО КЕМ" text [note: "Notion type: person"]
   "ПРОЕКТЫ" text [note: "Notion type: relation -> collection://662e6140-2e55-40b4-8a67-e5d7aabe67bf"]
@@ -67,7 +67,7 @@ Table "📌 ТЕЗИСЫ" as notion_claims {
   "СОЗДАНО КЕМ" text [note: "Notion type: select"]
   "СТАТУС" text [note: "Notion type: select"]
   "СТАТУС ГИПОТЕЗЫ" text [note: "Notion type: select"]
-  "ТЕМЫ" text [note: "Notion type: relation -> collection://92ec1584-b174-4ebf-baf4-c54a5656ef84"]
+  "ТЕМЫ" text [note: "Notion type: relation -> collection://92ec1584-b174-4ebf-baf4-c54a5656ef84; JSON array в Notion"]
   "ТИП ТЕЗИСА" text [note: "Notion type: select"]
   "УРОВЕНЬ УВЕРЕННОСТИ" text [note: "Notion type: select"]
   "УРОВЕНЬ УТВЕРЖДЕНИЯ" text [note: "Notion type: select"]
@@ -80,10 +80,82 @@ Table "🧠 ТЕМЫ" as notion_topics {
   notion_id text [pk, note: "collection://92ec1584-b174-4ebf-baf4-c54a5656ef84"]
   "Тема" text [not null, note: "Notion type: title"]
   "Parent item" text [note: "Notion type: relation -> collection://92ec1584-b174-4ebf-baf4-c54a5656ef84; limit: 1"]
-  "Sub-item" text [note: "Notion type: relation -> collection://92ec1584-b174-4ebf-baf4-c54a5656ef84"]
+  "Sub-item" text [note: "Notion type: relation -> collection://92ec1584-b174-4ebf-baf4-c54a5656ef84; JSON array в Notion"]
   "Описание" text [note: "Notion type: text"]
 
   Note: "Полный список полей выгружен из Notion schema и SQLite table definition."
+}
+
+// =========================
+// Relation-поля между ИСТОЧНИКИ / ТЕЗИСЫ / ТЕМЫ
+// Разложение Notion relation в SQL-подобную ERD-модель
+// =========================
+
+Table "Связь: ИСТОЧНИКИ.ТЕМЫ ↔ ТЕМЫ" as rel_sources_topics {
+  source_id text [not null, ref: > notion_sources.notion_id]
+  topic_id text [not null, ref: > notion_topics.notion_id]
+
+  indexes {
+    (source_id, topic_id) [pk]
+  }
+
+  Note: "Notion relation: поле ИСТОЧНИКИ.ТЕМЫ. В SQLite хранится как JSON array page URLs. Семантика: many-to-many."
+}
+
+Table "Связь: ТЕЗИСЫ.ИСТОЧНИКИ ↔ ИСТОЧНИКИ" as rel_claims_sources {
+  claim_id text [not null, ref: > notion_claims.notion_id]
+  source_id text [not null, ref: > notion_sources.notion_id]
+
+  indexes {
+    (claim_id, source_id) [pk]
+  }
+
+  Note: "Notion relation: поле ТЕЗИСЫ.ИСТОЧНИКИ. В SQLite хранится как JSON array page URLs. Семантика: many-to-many."
+}
+
+Table "Связь: ТЕЗИСЫ.ТЕМЫ ↔ ТЕМЫ" as rel_claims_topics {
+  claim_id text [not null, ref: > notion_claims.notion_id]
+  topic_id text [not null, ref: > notion_topics.notion_id]
+
+  indexes {
+    (claim_id, topic_id) [pk]
+  }
+
+  Note: "Notion relation: поле ТЕЗИСЫ.ТЕМЫ. В SQLite хранится как JSON array page URLs. Семантика: many-to-many."
+}
+
+Table "Связь: ТЕЗИСЫ.ОСНОВАНИЯ ↔ ТЕЗИСЫ" as rel_claims_bases {
+  claim_id text [not null, ref: > notion_claims.notion_id]
+  base_claim_id text [not null, ref: > notion_claims.notion_id]
+
+  indexes {
+    (claim_id, base_claim_id) [pk]
+  }
+
+  Note: "Notion self-relation: поле ТЕЗИСЫ.ОСНОВАНИЯ. Целевой data source тот же: ТЕЗИСЫ."
+}
+
+Table "Связь: ТЕЗИСЫ.ОБОСНОВЫВАЕТ ↔ ТЕЗИСЫ" as rel_claims_supports {
+  claim_id text [not null, ref: > notion_claims.notion_id]
+  supported_claim_id text [not null, ref: > notion_claims.notion_id]
+
+  indexes {
+    (claim_id, supported_claim_id) [pk]
+  }
+
+  Note: "Notion self-relation: поле ТЕЗИСЫ.ОБОСНОВЫВАЕТ. Целевой data source тот же: ТЕЗИСЫ."
+}
+
+Table "Связь: ТЕМЫ.Parent item / Sub-item" as rel_topics_hierarchy {
+  parent_topic_id text [not null, ref: > notion_topics.notion_id]
+  child_topic_id text [not null, ref: > notion_topics.notion_id]
+
+  indexes {
+    (parent_topic_id, child_topic_id) [pk]
+    child_topic_id [unique]
+  }
+
+  Note: "Notion self-relation: Parent item / Sub-item. У Parent item стоит limit: 1, значит у одной дочерней темы максимум один родитель."
 }
 
 // =========================
@@ -154,37 +226,3 @@ Table "Tasks" as notion_tasks { notion_id text [pk] }
 Table "Projects" as notion_projects { notion_id text [pk] }
 Table "СОБЫТИЯ" as notion_events { notion_id text [pk] }
 Table "НЕРАЗОБРАННЫЕ ССЫЛКИ" as notion_id_refs { notion_id text [pk] }
-
-// =========================
-// Связи, подтверждённые relation-полями
-// =========================
-
-Ref: notion_sources."ТЕМЫ" > notion_topics.notion_id
-Ref: notion_sources."ЛЮДИ" > notion_people.notion_id
-Ref: notion_sources."ДНИ" > notion_days.notion_id
-Ref: notion_sources."ЦИТАТЫ" > notion_id_refs.notion_id
-
-Ref: notion_claims."ИСТОЧНИКИ" > notion_sources.notion_id
-Ref: notion_claims."ТЕМЫ" > notion_topics.notion_id
-Ref: notion_claims."ЛЮДИ" > notion_people.notion_id
-Ref: notion_claims."ДНИ" > notion_days.notion_id
-Ref: notion_claims."ГРУППЫ" > notion_groups.notion_id
-Ref: notion_claims."ОРГАНИЗАЦИИ" > notion_organizations.notion_id
-Ref: notion_claims."ПРОЕКТЫ" > notion_projects.notion_id
-Ref: notion_claims."СОБЫТИЯ" > notion_events.notion_id
-Ref: notion_claims."ОСНОВАНИЯ" > notion_claims.notion_id
-Ref: notion_claims."ОБОСНОВЫВАЕТ" > notion_claims.notion_id
-
-Ref: notion_topics."Parent item" > notion_topics.notion_id
-Ref: notion_topics."Sub-item" > notion_topics.notion_id
-
-Ref: notion_organizations."ИСТОЧНИКИ" > notion_sources.notion_id
-Ref: notion_organizations."СОБЫТИЯ" > notion_events.notion_id
-Ref: notion_organizations."ПРОЕКТЫ" > notion_projects.notion_id
-Ref: notion_organizations."ТЕМЫ" > notion_topics.notion_id
-Ref: notion_organizations."ЛЮДИ" > notion_people.notion_id
-Ref: notion_organizations."ГРУППЫ" > notion_groups.notion_id
-
-Ref: notion_days."ГОДЫ_DB" > notion_years.notion_id
-Ref: notion_days."КВАРТАЛЫ_DB" > notion_quarters.notion_id
-Ref: notion_days."КОНТЕНТ" > notion_sources.notion_id
